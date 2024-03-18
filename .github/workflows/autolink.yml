@@ -1,0 +1,27 @@
+name: Autolink Jira in comments
+
+on:
+  issue_comment:
+    types: [created, edited]
+
+jobs:
+  autolink-jira:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Generate Manpages
+        shell: python
+        run: |
+          import re
+
+          regex=re.compile(r"(https.*)?(?<!\[)(RHELC?-\d+)]?", re.MULTILINE)
+          with open("releaseBody.txt", 'w') as f:
+            f.write(regex.sub(r"[\g<1>](https://issues.redhat.com/browse/\g<1>)", ${{github.event.comment.body}}))
+
+      - name: Update PR comment with Jira links
+        if: ${{ github.event.issue.pull_request }}
+        run: gh release edit ${{github.event.comment.id .ref_name}} --notes-file releaseBody.txt
+
+      - name: Update Issue comment with Jira links
+        if: ${{ !github.event.issue.pull_request }}
+        run: gh issue edit ${{github.event.issue.}} --body-file releaseBody.txt
