@@ -63,6 +63,8 @@ jobs:
           name: github-repo
 
       - name: Build RPM package for EL${{ matrix.el.ver }}
+        env:
+          BUILD_IMAGES: 0
         run: |
           make rpm${{ matrix.el.ver }}
 
